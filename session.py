@@ -1,7 +1,0 @@
-cookies = {
-
-}
-
-headers = {
-
-}
