@@ -5,12 +5,9 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from dataclasses import dataclass
 from urllib.parse import urlparse
 
+import arrow
 import browser_cookie3
 import requests
-import arrow
-import wget
-import argparse
-
 from retrying import retry
 
 from constants import headers
@@ -32,10 +29,10 @@ def setup_session():
         s = requests.Session()
         s.headers.update(headers)
         s.cookies.update(cookies)
+        return s
     except Exception as ex:
         print("请用chrome到cloud.huawei.com登陆并进入相册程序后关闭浏览器")
         exit(-1)
-    return s
 
 
 def get_files_to_download(root_folder):
@@ -51,14 +48,13 @@ def get_files_to_download(root_folder):
             print(f"Getting file list from count = {i}")
             data = {"albumId": None, "currentNum": i, "count": count, "type": None,
                     "traceId": "04118_02_1595940145_34834964"}
-            file_list = session.post('https://cloud.huawei.com/album/getSimpleFile', data=json.dumps(data), timeout  = 120).json()['fileList']
+            file_list = session.post('https://cloud.huawei.com/album/getSimpleFile', data=json.dumps(data), timeout=120).json()['fileList']
 
             image_files = [{"albumId": image_file['albumId'], "uniqueId": image_file['uniqueId']} for image_file in
                            file_list]
             data = {"fileList": image_files, "ownerId": None, "traceId": "04101_02_1595940148_21875898"}
-            cloud_file_names = session.post('https://cloud.huawei.com/album/queryCloudFileName', data=json.dumps(data), timeout  = 120).json()[
+            cloud_file_names = session.post('https://cloud.huawei.com/album/queryCloudFileName', data=json.dumps(data), timeout=120).json()[
                 'fileList']
-
 
             file_creation_time = {}
             for a_file in cloud_file_names:
@@ -67,7 +63,7 @@ def get_files_to_download(root_folder):
             image_file_names = [{"albumId": image_file['albumId'], "uniqueId": image_file['uniqueId'], "fileName": image_file['fileName']} for image_file in file_list]
             data = {"fileList": image_file_names, "type": "0", "ownerId": None, "traceId": "04101_02_1595941545_61344217"}
 
-            url_list = session.post('https://cloud.huawei.com/album/getSingleUrl', data=json.dumps(data), timeout  = 120).json()['urlList']
+            url_list = session.post('https://cloud.huawei.com/album/getSingleUrl', data=json.dumps(data), timeout=120).json()['urlList']
 
             for url_detail in url_list:
                 url = url_detail['url']
